@@ -1,0 +1,34 @@
+Isaiah Barron
+ibarron@ucsc.edu
+CMPE 156
+Basic Chat Room
+
+files:
+
+1) client.c -> c file that handles the state machine for the client and the signal handling for Control-c
+
+2) client.h -> header file for client functionality
+
+3) LinkedList.c -> doubly linked list data structure. This data structure is used for the list of clients waiting to be talked to
+
+4) LinkedList.h -> header file for doubly linked list data structure functionality
+
+5) server.c -> Server implementation waits for a connection. once connection is established, it creates a thread to service the client
+
+6) server.h -> header file for server functionality
+
+7) wrapnetwork.c -> c file that has UNIX network wrapper functions
+
+8) wrapnetwork.h -> header file for wrapper funcitons
+
+Implementation:
+
+- Max message size between clients is 8124 bytes
+- Max message size between client and server is 512 bytes
+- Everything works as expected
+- Cntrl C only works in CHAT state:
+	*if Cntrl C is pressed, user HAS to press enter.
+	*When it has been entered, both clients close their connections to each other,
+	 then both clients go back to the INFO state
+	*if Cntrl C is pressed and entered in WAIT state or INFO state, it is ignored
+- Client program only exits when the command "/quit" is enter. It works in any state

@@ -1,0 +1,32 @@
+Isaiah Barron
+ibarron@ucsc.edu
+CMPE 156
+3/17/19
+
+Protocol:
+
+-Client state machine:
+*INFO state: When client program first begins, the initial state is INFO. Once in INFO state, the program displays a prompt and waits for a user to enter in a command:
+ 
+	->if "/list" command, the client sends the command to the server, and the server sends back the list of waiting clients. If the list is empty, the server sends a "Empty List" message to the client, otherwise, the list is printed to standard output. Then the client program loops back to the INFO state and waits for another command by the user. 
+	
+	->If "/wait" command, the client sends the command to the server and then the client receives a response message from the server about the wait list. The client then switches to the WAIT state. 
+
+	->If "/connect <id>" command, the client sends the command to the server, then the  client waits for a response from the server if <id> is on the list. If <id> is on the list, then the client connects to <id>, then closes the connection with the server, and switches to the CHAT state. If <id> is not on the list, the program loops back the the INFO state and waits for the next command.
+
+	->If "/quit" command, the client sends the command to the server, and both the client and the server close the connection and the program exits.
+
+*WAIT state: when the client is in the WAIT state, the program creates two separate threads: one for reading in commands from the user and the other one waits for a connection from a client. If the user types the command "/quit", a flag is set and the function that called pthread_create checks the flag. If the flag is true, the thread that is waiting for a connection is canceled, then client closes the connection with the server, and the program exits. However, if client connects to the waiting client, a flag is set, and the function that called pthread_create checks the flag, cancels the thread that is reading in commands, sends a "/quit" message to the server, closes the connection to the server, and then switches to the CHAT state.
+
+*CHAT state: when the client is in the CHAT state, the program creates two separate threads: once for sending messages and the other for receiving messages. The user types in a message in the prompt, checks to see if the message is "/quit", if not, it sends the message to the connected client. If the message was a "/quit", the client sends the message to the connected client, sets a send flag, cancels the recv thread, and then closes the connection to the connected client. In the function that called pthread_create for the send thread, its checks the send flag, if flag is true, it quits the program. If the client receives a "/quit" command, it sets a recv flag, closes the connection with the connected client and in the calling function that called the recv thread, it checks the flag, and if it is true, it sets the state to INFO and reconnects to the server.
+
+**Control-C signal handling
+	-When in WAIT or INFO state, cntrl-c is ignored
+	-When in CHAT state, if cntrl-c is pressed, in the signal handler, the handler
+	resets readline(), clears the terminal, and sets sigint flag. When the handler is
+	done, while in the CHAT state, 
+	-When the handler is finished, the client checks the sigint flag, if it is true,
+	the client sends a "/quit" message to the connected client (does the same 		behavior if the user had type in "/quit"), sets a cntrl-c flag,
+	and resets the sigint flag. The calling function that called the send thread,
+	checks the cntrl-c flag, if its true, it cancels both recv and send thread,
+	changes the state to INFO, and reconnects to the server. 
