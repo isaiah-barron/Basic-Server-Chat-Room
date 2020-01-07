@@ -1,7 +1,5 @@
 Isaiah Barron
-ibarron@ucsc.edu
-CMPE 156
-3/17/19
+
 
 Protocol:
 
